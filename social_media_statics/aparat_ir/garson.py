@@ -42,7 +42,7 @@ def init_csv_file():
         log.log(origin=sn,message=f"{raw_data_file_name} file found successfully.")
         return True
 
-def get_todays_data(channel_id,username,password,save = True,replace_by_old_todays_data = False,custom_timezone = None,get_list = ["get_subscribers","get_count_videos","get_today_views","get_total_views"]):
+def get_todays_data(channel_id,username,password,save = True,replace_by_old_todays_data = False,custom_timezone = None,get_list = ["get_subscribers","get_count_videos","get_today_views","get_total_views","get_total_minute_views"]):
     #Chaning path to telegram data
     while(True):
         try:

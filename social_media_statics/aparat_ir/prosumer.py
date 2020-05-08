@@ -61,9 +61,6 @@ def login_into_profile(channel_id, password):
             log.log(sn, "Finding username input.")
             username_field = aparat_browser.find_element_by_id("username")
         except Exception as msg:
-            with open("screenshot.png",'ab') as image:
-                image.write(aparat_browser.get_screenshot_as_png())
-
             log.log(sn,"Couldn't find username field."+str(msg))
             sleep(3)
             if i < 4:
