@@ -14,7 +14,7 @@ Raw Data on website -> Receiving by Prosumer -> Organizing by Garson -> Cooking 
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from pyLog.pylog import log
-from social_media_statics.telegram_org.options import script_name as sn
+from social_media.telegram_org.options import script_name as sn
 
 telegram_root_url = "https://t.me/"
 

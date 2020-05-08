@@ -4,10 +4,10 @@ import threading
 #getting data
 
 def get_telgram_data():
-    from social_media_statics.telegram_org import garson
+    from social_media.telegram_org import garson
     garson.get_todays_data("iranpythoneers")
     # try:
-    #     log.log(__name__,str(timeit.timeit('garson.get_todays_data("iranpythoneers")','from social_media_statics.telegram_org import garson')))
+    #     log.log(__name__,str(timeit.timeit('garson.get_todays_data("iranpythoneers")','from social_media.telegram_org import garson')))
     #     return
     # except Exception as msg:
     #     print("Error in getting Telegram data.")
@@ -15,10 +15,10 @@ def get_telgram_data():
     #     return
 
 def get_aparat_data():
-    from social_media_statics.aparat_ir import garson
+    from social_media.aparat_ir import garson
     garson.get_todays_data("iranpythoneers","iranpythoneers","Not@Work78!")
     try:
-        log.log(__name__,str(timeit.timeit('garson.get_todays_data("iranpythoneers","iranpythoneers","Not@Work78!")','from social_media_statics.aparat_ir import garson')))
+        log.log(__name__,str(timeit.timeit('garson.get_todays_data("iranpythoneers","iranpythoneers","Not@Work78!")','from social_media.aparat_ir import garson')))
         return
     except Exception as msg:
         print("Error in getting Aparat data.")

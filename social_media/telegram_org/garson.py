@@ -6,8 +6,8 @@ Raw Data on website -> Receiving by Prosumer -> Organizing by Garson -> Cooking 
 """
 
 import datetime
-from social_media_statics.telegram_org import prosumer
-from social_media_statics.telegram_org.options import script_name as sn
+from social_media.telegram_org import prosumer
+from social_media.telegram_org.options import script_name as sn
 import csv
 import os
 from options import data_path
@@ -121,3 +121,4 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
     data_writer.writerow(data_row)
 
     csv_file.close()
+    return True

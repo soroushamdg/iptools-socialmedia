@@ -11,11 +11,19 @@ Software diagram:
 Raw Data on website -> Receiving by Prosumer -> Organizing by Garson -> Cooking into Valuable Data by Chef
 """
 
+
+#selenium imports
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
+#pyLog imports
 from pyLog.pylog import log
-from social_media_statics.aparat_ir.options import script_name as sn
+#options imports
+from social_media.aparat_ir.options import script_name as sn
+#time imports
 from time import sleep
+#os import
+import os
+#code seg
 aparat_root_url = "https://www.aparat.com/"
 
 opts = Options()
@@ -142,7 +150,7 @@ def login_into_profile(channel_id, password):
     return True
 
 
-
+# GETTINGS STATISTICS
 def get_channel_name(channel_id):
     """
     This function returns title of the channel.
@@ -341,3 +349,124 @@ def get_count_videos(channel_id):
         log.log(sn,"Error in connecting to server ->"+str(msg))
     else:
         return aparat_browser.find_elements_by_class_name("dashboard-stats")[0].find_elements_by_class_name("number")[0].text
+
+
+# UPLOAD NEW STUFF
+
+
+def upload_new_media(title,description,tags,media_url,category_index = 0,publish_now = True):
+
+
+    if not has_logged_in:
+        log.log(sn,"Please first login into website.")
+        return False
+    # going to upload page
+
+
+    try:
+        aparat_browser.get(aparat_root_url + 'uploadnew')
+    except Exception as msg:
+        log.log(sn,"Error in connecting to server ->" + str(msg))
+        return False
+    sleep(3)
+
+    #find upload section
+    try:
+        upload_section = aparat_browser.find_element_by_class_name('react-fine-uploader-file-input')
+    except Exception as msg:
+        log.log(sn,"Error in finding upload section ->" + str(msg))
+        return False
+
+
+    #sending file to upload input
+    try:
+        upload_section.send_keys(media_url)
+    except Exception as msg:
+        log.log(sn,"Error in sending file to upload section ->" + str(msg))
+        return False
+
+    sleep(1)
+
+    #check if upload started (by checking a text)
+    for i in range(3):
+        try:
+            assert aparat_browser.find_element_by_class_name('sc-gPEVay').text == 'در حال بارگذاری','Upload has not started'
+        except:
+            log.log(sn,f'upload has not started -> check {i+1}')
+            if i == 2:
+                log.log(sn,'Video upload didn\'t start')
+                return False
+        else:
+            log.log(sn,f'upload in progress, check {i+1}')
+            break
+
+    #filling in title and description
+
+    #title
+    try:
+        title_section = aparat_browser.find_element_by_id('title')
+    except Exception as msg:
+        log.log(sn, "Error in finding title section ->" + str(msg))
+        return False
+    else:
+        title_section.send_keys(title)
+
+    #description
+    try:
+        desc_section = aparat_browser.find_element_by_id('descr')
+    except Exception as msg:
+        log.log(sn, "Error in finding title section ->" + str(msg))
+        return False
+    else:
+        desc_section.send_keys(description)
+
+    #tags
+    try:
+        tags_section = aparat_browser.find_element_by_class_name('tags-input--trigger').find_element_by_tag_name('input')
+    except:
+        log.log(sn, "Error in finding tags section ->" + str(msg))
+        return False
+    else:
+        for tag in tags:
+            tags_section.send_keys(tag)
+            sleep(1)
+            tags_section.submit()
+            sleep(500)
+
+    #category
+    try:
+        #open menu
+        aparat_browser.find_element_by_class_name('sc-gGBfsJ').click()
+        category_menu = aparat_browser.find_element_by_class_name('sc-fYxtnH').find_element_by_class_name('sc-feJyhm')
+        #chose from menu and click
+        category_menu.find_elements_by_class_name('sc-hEsumM')[category_index].click()
+    except:
+        log.log(sn, "Error in selecting category section ->" + str(msg))
+        return False
+    else:
+        log.log(sn, "category selected successfully")
+
+
+    #submit video
+    if publish_now:
+        aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('khoBFo').click()
+    else:
+        aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('eEsanf').click()
+
+    #check if upload has finished
+    while True:
+        try:
+            with aparat_browser.find_element_by_class_name('sc-jDwBTQ').find_element_by_class_name('sc-gPEVay').text as status:
+                if status == "ویدیوی شما با موفقیت بارگذاری شد":
+                    log.log(sn,'upload has finished')
+                    break
+                elif status == "در حال بارگذاری":
+                    log.log(sn,f'video still uploading. -> {aparat_browser.find_elements_by_class_name("dHqyom")}')
+                    continue
+        except:
+            log.log(sn,'Error in uploading file, quiting.')
+            return False
+
+    log.log(sn,'Video uploaded successfully')
+    return True
+
