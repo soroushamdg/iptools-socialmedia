@@ -1,5 +1,5 @@
-
-log_file_path = r"C:\Users\Soroush\PycharmProjects\ip-tools\data"
+import pathlib
+log_file_path = str(pathlib.Path.cwd().absolute())
 
 print_logging = True
 

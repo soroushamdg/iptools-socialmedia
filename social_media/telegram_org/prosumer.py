@@ -13,15 +13,17 @@ Raw Data on website -> Receiving by Prosumer -> Organizing by Garson -> Cooking 
 
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
-from pyLog.pylog import log
+import logger_factory,logging
+logging.getLogger(__name__)
 from social_media.telegram_org.options import script_name as sn
-
+import pathlib
+from options import chromdriver_path
 telegram_root_url = "https://t.me/"
 
 opts = Options()
 opts.set_headless(True)
 assert opts.headless
-tlg_browser = Chrome(options=opts,executable_path='C:/Users/Soroush/PycharmProjects/ip-tools/dependencies/chromedriver.exe')
+tlg_browser = Chrome(options=opts,executable_path=chromdriver_path)
 
 def get_channel_name(channel_id):
     """
@@ -32,7 +34,7 @@ def get_channel_name(channel_id):
     try:
         tlg_browser.get(telegram_root_url + str(channel_id) if '@' not in channel_id else channel_id[1::])
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
     else:
         return tlg_browser.find_elements_by_class_name('tgme_page_title')[0].text
 
@@ -47,7 +49,7 @@ def get_subscribers(channel_id,string = True):
     try:
         tlg_browser.get(telegram_root_url + str(channel_id) if '@' not in channel_id else channel_id[1::])
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
         return
 
     members = [element.text if 'members' in element.text else '' for element in tlg_browser.find_elements_by_class_name('tgme_page_extra')]
@@ -55,10 +57,10 @@ def get_subscribers(channel_id,string = True):
         try:
             num = str(members[0].split('members')[0]).strip()
         except:
-            log.log(sn,"couldn't connect.")
+            logging.debug("couldn't connect.")
             return 0
         else:
-            log.log(sn,"successful connect.")
+            logging.debug("successful connect.")
             return str(num.replace(" ","")) if string else int(num.replace(" ",""))
 
     else:
@@ -74,7 +76,7 @@ def get_description(channel_id):
     try:
         tlg_browser.get(telegram_root_url + str(channel_id) if '@' not in channel_id else channel_id[1::])
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->"+str(msg))
+        logging.debug("Error in connecting to server ->"+str(msg))
     else:
         return tlg_browser.find_elements_by_class_name('tgme_page_description')[0].text
 
@@ -82,6 +84,6 @@ def get_cover_image_url(channel_id):
     try:
         tlg_browser.get(telegram_root_url + str(channel_id) if '@' not in channel_id else channel_id[1::])
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->"+str(msg))
+        logging.debug("Error in connecting to server ->"+str(msg))
     else:
         return tlg_browser.find_elements_by_class_name('tgme_page_photo_image')[0].get_attribute("src")

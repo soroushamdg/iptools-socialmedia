@@ -15,21 +15,25 @@ Raw Data on website -> Receiving by Prosumer -> Organizing by Garson -> Cooking 
 #selenium imports
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
-#pyLog imports
-from pyLog.pylog import log
+#logging
+import logger_factory,logging
+logging.getLogger(__name__)
 #options imports
 from social_media.aparat_ir.options import script_name as sn
 #time imports
 from time import sleep
 #os import
 import os
+import pathlib
+from options import chromdriver_path
+
 #code seg
 aparat_root_url = "https://www.aparat.com/"
 
 opts = Options()
 opts.set_headless(True)
 assert opts.headless
-aparat_browser = Chrome(options=opts, executable_path='C:/Users/Soroush/PycharmProjects/ip-tools/dependencies/chromedriver.exe')
+aparat_browser = Chrome(options=opts, executable_path=chromdriver_path)
 
 has_logged_in = False
 
@@ -53,10 +57,10 @@ def login_into_profile(channel_id, password):
 
     #get into login url
     try:
-        log.log(sn, "Loading login page.")
+        logging.debug("Loading login page.")
         aparat_browser.get("https://www.aparat.com/login")
     except:
-        log.log(sn,"Couldn't get into login page.")
+        logging.debug("Couldn't get into login page.")
         return False
 
     sleep(2)
@@ -66,10 +70,10 @@ def login_into_profile(channel_id, password):
     for i in range(5):
         #find username field and fill it.
         try:
-            log.log(sn, "Finding username input.")
+            logging.debug("Finding username input.")
             username_field = aparat_browser.find_element_by_id("username")
         except Exception as msg:
-            log.log(sn,"Couldn't find username field."+str(msg))
+            logging.debug("Couldn't find username field."+str(msg))
             sleep(3)
             if i < 4:
                 continue
@@ -83,28 +87,28 @@ def login_into_profile(channel_id, password):
 
     #find first login stage button
     try:
-        log.log(sn,"Clicking on first stage login button.")
+        logging.debug("Clicking on first stage login button.")
         login_first_stage_button = aparat_browser.find_elements_by_class_name("btn")[1]
         assert "ورود" in login_first_stage_button.text,"login first stage button list index is wrong, please check."
     except:
-        log.log(sn,"Couldn't find first stage login submit button")
+        logging.debug("Couldn't find first stage login submit button")
         return False
     else:
         login_first_stage_button.click()
 
     #check if it worked.
-    log.log(sn,"Check if username has found.")
+    logging.debug("Check if username has found.")
     assert "کاربر پیدا نشد!" not in [element.text for element in aparat_browser.find_elements_by_class_name("text-error")],"Error message in login page,It seems username is incorrect."
-    log.log(sn,"Username has found.")
+    logging.debug("Username has found.")
     #find password field
     #checks for 5 times, with 3 seconds wait.
     sleep(2)
     for i in range(5):
         try:
-            log.log(sn,"Finding password input.")
+            logging.debug("Finding password input.")
             password_field = aparat_browser.find_element_by_id("password")
         except:
-            log.log(sn,"Couldn't find username field.")
+            logging.debug("Couldn't find username field.")
             if i<4:
                 continue
             else:
@@ -118,11 +122,11 @@ def login_into_profile(channel_id, password):
 
     #find login button and LOGIN
     try:
-        log.log(sn,"find login second stage button.")
+        logging.debug("find login second stage button.")
         login_final_stage_button = aparat_browser.find_elements_by_class_name("btn")[0]
         assert "ادامه" in login_final_stage_button.text,"login final stage button list index is wrong, please check."
     except:
-        log.log(sn,"Couldn't find final stage login submit button")
+        logging.debug("Couldn't find final stage login submit button")
         return False
     else:
         login_final_stage_button.click()
@@ -132,10 +136,10 @@ def login_into_profile(channel_id, password):
 
     for i in range(5):
         try:
-            log.log(sn,"Checking if logging in was successfull.")
+            logging.debug("Checking if logging in was successfull.")
             assert "https://www.aparat.com/" == aparat_browser.current_url,"Login failed, didn't load first page."
         except Exception as msg:
-            log.log(sn,str(msg))
+            logging.debug(str(msg))
             if i<4:
                 sleep(1)
                 continue
@@ -158,13 +162,13 @@ def get_channel_name(channel_id):
     :return: string
     """
     if not has_logged_in:
-        log.log(sn,"Please first login into website.")
+        logging.debug("Please first login into website.")
         return False
 
     try:
         aparat_browser.get(aparat_root_url + str(channel_id) if '@' not in channel_id else channel_id[1::])
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
     else:
         return aparat_browser.find_element_by_id("channelTitle")[0].text
 
@@ -178,29 +182,29 @@ def get_subscribers(channel_id,string = True):
     """
 
     if not has_logged_in:
-        log.log(sn,"Please first login into website.")
+        logging.debug("Please first login into website.")
         return "!LOGIN"
 
     try:
         aparat_browser.get(aparat_root_url + "statistics")
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
         return
 
     try:
         members = aparat_browser.find_elements_by_class_name("stat-box")[0].find_elements_by_class_name("number")[0].text
     except:
-        log.log(sn,"error in finding stat-box number members text")
+        logging.debug("error in finding stat-box number members text")
         return
     else:
         if members:
             try:
                 num = str(members).strip()
             except:
-                log.log(sn,"couldn't connect.")
+                logging.debug("couldn't connect.")
                 return 0
             else:
-                log.log(sn,"successful connect.")
+                logging.debug("successful connect.")
                 return str(num.replace(" ","")) if string else int(num.replace(" ",""))
 
         else:
@@ -217,29 +221,29 @@ def get_total_views(channel_id, string=True):
     """
 
     if not has_logged_in:
-        log.log(sn, "Please first login into website.")
+        logging.debug("Please first login into website.")
         return "!LOGIN"
 
     try:
         aparat_browser.get(aparat_root_url + "statistics")
     except Exception as msg:
-        log.log(sn, "Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
         return
 
     try:
         total_views = aparat_browser.find_elements_by_class_name("stat-box")[1].find_elements_by_class_name("number")[0].text
     except:
-        log.log(sn, "error in finding stat-box number total views text")
+        logging.debug("error in finding stat-box number total views text")
         return
     else:
         if total_views:
             try:
                 num = str(total_views).strip()
             except:
-                log.log(sn, "couldn't connect.")
+                logging.debug("couldn't connect.")
                 return 0
             else:
-                log.log(sn, "successful connect.")
+                logging.debug("successful connect.")
                 return str(num.replace(" ", "")) if string else int(num.replace(" ", ""))
 
         else:
@@ -256,29 +260,29 @@ def get_total_minute_views(channel_id, string=True):
     """
 
     if not has_logged_in:
-        log.log(sn, "Please first login into website.")
+        logging.debug("Please first login into website.")
         return "!LOGIN"
 
     try:
         aparat_browser.get(aparat_root_url + "statistics")
     except Exception as msg:
-        log.log(sn, "Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
         return
 
     try:
         total_minute_views = aparat_browser.find_elements_by_class_name("stat-box")[2].find_elements_by_class_name("number")[0].text
     except:
-        log.log(sn, "error in finding stat-box number total minute views text")
+        logging.debug("error in finding stat-box number total minute views text")
         return
     else:
         if total_minute_views:
             try:
                 num = str(total_minute_views).strip()
             except:
-                log.log(sn, "couldn't connect.")
+                logging.debug("couldn't connect.")
                 return 0
             else:
-                log.log(sn, "successful connect.")
+                logging.debug("successful connect.")
                 return str(num.replace(" ", "")) if string else int(num.replace(" ", ""))
 
         else:
@@ -295,29 +299,29 @@ def get_today_views(channel_id, string=True):
     """
 
     if not has_logged_in:
-        log.log(sn, "Please first login into website.")
+        logging.debug("Please first login into website.")
         return "!LOGIN"
 
     try:
         aparat_browser.get(aparat_root_url + "statistics")
     except Exception as msg:
-        log.log(sn, "Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
         return
 
     try:
         today_views = aparat_browser.find_elements_by_class_name("stat-box")[3].find_elements_by_class_name("number")[0].text
     except:
-        log.log(sn, "error in finding stat-box number today views text")
+        logging.debug("error in finding stat-box number today views text")
         return
     else:
         if today_views:
             try:
                 num = str(today_views).strip()
             except:
-                log.log(sn, "couldn't connect.")
+                logging.debug("couldn't connect.")
                 return 0
             else:
-                log.log(sn, "successful connect.")
+                logging.debug("successful connect.")
                 return str(num.replace(" ", "")) if string else int(num.replace(" ", ""))
 
         else:
@@ -325,13 +329,13 @@ def get_today_views(channel_id, string=True):
 
 def get_cover_image_url(channel_id):
     if not has_logged_in:
-        log.log(sn, "Please first login into website.")
+        logging.debug("Please first login into website.")
         return "!LOGIN"
 
     try:
         aparat_browser.get(aparat_root_url + "dashboard")
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->"+str(msg))
+        logging.debug("Error in connecting to server ->"+str(msg))
     else:
         return aparat_browser.find_elements_by_class_name("top")[0].find_elements_by_class_name("avatar")[0].find_elements_by_class_name("avatar-img")[0].get_attribute("src")
 
@@ -339,14 +343,14 @@ def get_cover_image_url(channel_id):
 def get_count_videos(channel_id):
 
     if not has_logged_in:
-        log.log(sn, "Please first login into website.")
+        logging.debug("Please first login into website.")
         return "!LOGIN"
 
 
     try:
         aparat_browser.get(aparat_root_url + "dashboard")
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->"+str(msg))
+        logging.debug("Error in connecting to server ->"+str(msg))
     else:
         return aparat_browser.find_elements_by_class_name("dashboard-stats")[0].find_elements_by_class_name("number")[0].text
 
@@ -358,7 +362,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
 
 
     if not has_logged_in:
-        log.log(sn,"Please first login into website.")
+        logging.debug("Please first login into website.")
         return False
     # going to upload page
 
@@ -366,7 +370,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     try:
         aparat_browser.get(aparat_root_url + 'uploadnew')
     except Exception as msg:
-        log.log(sn,"Error in connecting to server ->" + str(msg))
+        logging.debug("Error in connecting to server ->" + str(msg))
         return False
     sleep(3)
 
@@ -374,7 +378,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     try:
         upload_section = aparat_browser.find_element_by_class_name('react-fine-uploader-file-input')
     except Exception as msg:
-        log.log(sn,"Error in finding upload section ->" + str(msg))
+        logging.debug("Error in finding upload section ->" + str(msg))
         return False
 
 
@@ -382,7 +386,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     try:
         upload_section.send_keys(media_url)
     except Exception as msg:
-        log.log(sn,"Error in sending file to upload section ->" + str(msg))
+        logging.debug("Error in sending file to upload section ->" + str(msg))
         return False
 
     sleep(1)
@@ -392,12 +396,12 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
         try:
             assert aparat_browser.find_element_by_class_name('sc-gPEVay').text == 'در حال بارگذاری','Upload has not started'
         except:
-            log.log(sn,f'upload has not started -> check {i+1}')
+            logging.debug(f'upload has not started -> check {i+1}')
             if i == 2:
-                log.log(sn,'Video upload didn\'t start')
+                logging.debug('Video upload didn\'t start')
                 return False
         else:
-            log.log(sn,f'upload in progress, check {i+1}')
+            logging.debug(f'upload in progress, check {i+1}')
             break
 
     #filling in title and description
@@ -406,7 +410,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     try:
         title_section = aparat_browser.find_element_by_id('title')
     except Exception as msg:
-        log.log(sn, "Error in finding title section ->" + str(msg))
+        logging.debug("Error in finding title section ->" + str(msg))
         return False
     else:
         title_section.send_keys(title)
@@ -415,7 +419,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     try:
         desc_section = aparat_browser.find_element_by_id('descr')
     except Exception as msg:
-        log.log(sn, "Error in finding title section ->" + str(msg))
+        logging.debug("Error in finding title section ->" + str(msg))
         return False
     else:
         desc_section.send_keys(description)
@@ -424,7 +428,7 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     try:
         tags_section = aparat_browser.find_element_by_class_name('tags-input--trigger').find_element_by_tag_name('input')
     except:
-        log.log(sn, "Error in finding tags section ->" + str(msg))
+        logging.debug("Error in finding tags section ->" + str(msg))
         return False
     else:
         for tag in tags:
@@ -440,11 +444,11 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
         category_menu = aparat_browser.find_element_by_class_name('sc-fYxtnH').find_element_by_class_name('sc-feJyhm')
         #chose from menu and click
         category_menu.find_elements_by_class_name('sc-hEsumM')[category_index].click()
-    except:
-        log.log(sn, "Error in selecting category section ->" + str(msg))
+    except Exception as msg:
+        logging.debug("Error in selecting category section ->" + str(msg))
         return False
     else:
-        log.log(sn, "category selected successfully")
+        logging.debug("category selected successfully")
 
 
     #submit video
@@ -458,15 +462,15 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
         try:
             with aparat_browser.find_element_by_class_name('sc-jDwBTQ').find_element_by_class_name('sc-gPEVay').text as status:
                 if status == "ویدیوی شما با موفقیت بارگذاری شد":
-                    log.log(sn,'upload has finished')
+                    logging.debug('upload has finished')
                     break
                 elif status == "در حال بارگذاری":
-                    log.log(sn,f'video still uploading. -> {aparat_browser.find_elements_by_class_name("dHqyom")}')
+                    logging.debug(f'video still uploading. -> {aparat_browser.find_elements_by_class_name("dHqyom")}')
                     continue
         except:
-            log.log(sn,'Error in uploading file, quiting.')
+            logging.debug('Error in uploading file, quiting.')
             return False
 
-    log.log(sn,'Video uploaded successfully')
+    logging.debug('Video uploaded successfully')
     return True
 

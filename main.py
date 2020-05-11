@@ -1,4 +1,5 @@
-from pyLog.pylog import log
+
+import logging
 import timeit
 import threading
 #getting data

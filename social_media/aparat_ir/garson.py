@@ -10,9 +10,11 @@ from social_media.aparat_ir import prosumer
 from social_media.aparat_ir.options import script_name as sn,raw_data_file_name,publish_log_file_name
 import csv
 import os
+import pathlib
 from options import data_path
-from pyLog.pylog import log
-
+import logger_factory
+import logging
+logging.getLogger(__name__)
 #tk imports
 import tkinter as tk
 from tkinter import filedialog
@@ -27,7 +29,7 @@ def init_csv_file(mode='data'):
         try:
             csv_file = open(raw_data_file_name,'r')
         except:
-            log.log(origin=sn,message=f"no {raw_data_file_name} file found! We will create new one.")
+            logging.debug(f"no {raw_data_file_name} file found! We will create new one.")
             try:
                 file = open(raw_data_file_name,'a+')
                 header_writer = csv.writer(file)
@@ -43,18 +45,18 @@ def init_csv_file(mode='data'):
                 file.close()
                 return True
             except Exception as msg:
-                log.log(origin=sn,message="can't create new csv file. please check administrator access or problems ->" + str(msg))
+                logging.debug("can't create new csv file. please check administrator access or problems ->" + str(msg))
 
                 return False
         else:
             csv_file.close()
-            log.log(origin=sn,message=f"{raw_data_file_name} file found successfully.")
+            logging.debug(f"{raw_data_file_name} file found successfully.")
             return True
     if mode == 'publish_log':
         try:
             csv_file = open(publish_log_file_name, 'r')
         except:
-            log.log(origin=sn, message=f"no {publish_log_file_name} file found! We will create new one.")
+            logging.debug(f"no {publish_log_file_name} file found! We will create new one.")
             try:
                 file = open(publish_log_file_name, 'a+')
                 header_writer = csv.writer(file)
@@ -70,24 +72,23 @@ def init_csv_file(mode='data'):
                 file.close()
                 return True
             except Exception as msg:
-                log.log(origin=sn,
-                        message="can't create new csv file. please check administrator access or problems ->" + str(
+                logging.debug("can't create new csv file. please check administrator access or problems ->" + str(
                             msg))
 
                 return False
         else:
             csv_file.close()
-            log.log(origin=sn, message=f"{publish_log_file_name} file found successfully.")
+            logging.debug(f"{publish_log_file_name} file found successfully.")
             return True
 
 def get_todays_data(channel_id,username,password,save = True,replace_by_old_todays_data = False,custom_timezone = None,get_list = ["get_subscribers","get_count_videos","get_today_views","get_total_views","get_total_minute_views"]):
     #Chaning path to aparat data
     while(True):
         try:
-            os.chdir(data_path + r"\aparat_data")
+            os.chdir(str(pathlib.Path(data_path).joinpath('aparat_data')))
         except:
-            log.log(origin=sn,message="couldn't find "+ data_path + r'\aparat_data')
-            os.chdir(data_path)
+            logging.debug("couldn't find "+ str(pathlib.Path(data_path).joinpath('aparat_data')))
+            os.chdir(str(pathlib.Path(data_path).joinpath('aparat_data')))
             os.mkdir("aparat_data")
         else:
             break
@@ -115,7 +116,8 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             members = prosumer.get_count_videos(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_subscribers.")
+            logging.debug("Error in running get_subscribers.")
+            pass
         else:
             data_row.append(str(members))
     else:
@@ -125,7 +127,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             members = prosumer.get_subscribers(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_subscribers.")
+            logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
     else:
@@ -135,7 +137,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             members = prosumer.get_today_views(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_subscribers.")
+            logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
     else:
@@ -145,7 +147,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             members = prosumer.get_total_views(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_subscribers.")
+            logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
     else:
@@ -155,7 +157,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             members = prosumer.get_total_minute_views(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_subscribers.")
+            logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
     else:
@@ -166,7 +168,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             members = prosumer.get_channel_name(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_subscribers.")
+            logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
     else:
@@ -177,7 +179,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
         try:
             cover_url = prosumer.get_cover_image_url(channel_id)
         except:
-            log.log(origin=sn,message="Error in running get_cover_image_url.")
+            logging.debug("Error in running get_cover_image_url.")
         else:
             data_row.append(str(cover_url))
     else:
@@ -219,10 +221,10 @@ def publish_new_video(channel_id,username,password,title,description,tags,media_
     # Chaning path to aparat data
     while (True):
         try:
-            os.chdir(data_path + r"\aparat_data")
+            os.chdir(str(pathlib.Path(data_path).joinpath('aparat_data')))
         except:
-            log.log(origin=sn, message="couldn't find " + data_path + r'\aparat_data')
-            os.chdir(data_path)
+            logging.debug("couldn't find " + str(pathlib.Path(data_path).joinpath('aparat_data')))
+            os.chdir(str(pathlib.Path(data_path).joinpath('aparat_data')))
             os.mkdir("aparat_data")
         else:
             break
@@ -233,7 +235,7 @@ def publish_new_video(channel_id,username,password,title,description,tags,media_
     # get file
     file_path = get_media_file_url()
     assert any([type in file_path for type in media_file_types]), 'INVALID FILE TYPE'
-    log.log(sn, f'File type is valid. {file_path} -> {os.path.getsize(file_path)}')
+    logging.debug(f'File type is valid. {file_path} -> {os.path.getsize(file_path)}')
 
     if not prosumer.has_logged_in:
         assert prosumer.login_into_profile(channel_id=username, password=password), "Error in logging in Aparat Profile."
