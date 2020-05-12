@@ -13,6 +13,7 @@ Raw Data on website -> Receiving by Prosumer -> Organizing by Garson -> Cooking 
 
 
 #selenium imports
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 #logging
@@ -25,14 +26,15 @@ from time import sleep
 #os import
 import os
 import pathlib
-from options import chromdriver_path
+from options import chromdriver_path,test_run
 
 #code seg
 aparat_root_url = "https://www.aparat.com/"
 
 opts = Options()
-opts.set_headless(True)
-assert opts.headless
+if not test_run:
+    opts.set_headless(True)
+    assert opts.headless
 aparat_browser = Chrome(options=opts, executable_path=chromdriver_path)
 
 has_logged_in = False
@@ -358,7 +360,7 @@ def get_count_videos(channel_id):
 # UPLOAD NEW STUFF
 
 
-def upload_new_media(title,description,tags,media_url,category_index = 0,publish_now = True):
+def upload_new_media(title,description,media_url,tags = [],category_index = 0,publish_now = True):
 
 
     if not has_logged_in:
@@ -394,7 +396,8 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     #check if upload started (by checking a text)
     for i in range(3):
         try:
-            assert aparat_browser.find_element_by_class_name('sc-gPEVay').text == 'در حال بارگذاری','Upload has not started'
+            print(aparat_browser.find_element_by_class_name('sc-gPEVay').text)
+            assert 'در حال بارگذاری' in aparat_browser.find_element_by_class_name('sc-gPEVay').text or 'ویدیوی شما با موفقیت بارگذاری شد' in aparat_browser.find_element_by_class_name('sc-gPEVay').text, 'Upload has not started'
         except:
             logging.debug(f'upload has not started -> check {i+1}')
             if i == 2:
@@ -427,15 +430,15 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
     #tags
     try:
         tags_section = aparat_browser.find_element_by_class_name('tags-input--trigger').find_element_by_tag_name('input')
-    except:
+    except Exception as msg:
         logging.debug("Error in finding tags section ->" + str(msg))
         return False
     else:
         for tag in tags:
             tags_section.send_keys(tag)
-            sleep(1)
-            tags_section.submit()
-            sleep(500)
+            sleep(20)
+            tags_section.send_keys(Keys.ENTER)
+            sleep(5)
 
     #category
     try:
@@ -451,26 +454,28 @@ def upload_new_media(title,description,tags,media_url,category_index = 0,publish
         logging.debug("category selected successfully")
 
 
-    #submit video
-    if publish_now:
-        aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('khoBFo').click()
-    else:
-        aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('eEsanf').click()
-
     #check if upload has finished
     while True:
         try:
             with aparat_browser.find_element_by_class_name('sc-jDwBTQ').find_element_by_class_name('sc-gPEVay').text as status:
-                if status == "ویدیوی شما با موفقیت بارگذاری شد":
+                if  "ویدیوی شما با موفقیت بارگذاری شد" in status:
                     logging.debug('upload has finished')
                     break
-                elif status == "در حال بارگذاری":
+                elif "در حال بارگذاری" in status:
                     logging.debug(f'video still uploading. -> {aparat_browser.find_elements_by_class_name("dHqyom")}')
                     continue
         except:
             logging.debug('Error in uploading file, quiting.')
             return False
 
+    # submit video
+    if publish_now:
+        aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('khoBFo').click()
+    else:
+        aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('eEsanf').click()
+
     logging.debug('Video uploaded successfully')
     return True
 
+def quit_browser():
+    aparat_browser.quit()

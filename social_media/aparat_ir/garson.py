@@ -111,6 +111,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
 
     data_row.append(str(now))
 
+    data = {}
     #start getting data.
     if "get_count_videos" in get_list:
         try:
@@ -120,6 +121,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             pass
         else:
             data_row.append(str(members))
+            data['get_count_videos'] = members
     else:
         data_row.append("-")
 
@@ -130,6 +132,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
+            data['get_subscribers'] = members
     else:
         data_row.append("-")
 
@@ -140,6 +143,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
+            data['get_today_views'] = members
     else:
         data_row.append("-")
 
@@ -150,6 +154,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
+            data['get_total_views'] = members
     else:
         data_row.append("-")
 
@@ -160,6 +165,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
+            data['get_total_minute_views'] = members
     else:
         data_row.append("-")
 
@@ -171,6 +177,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
+            data['get_channel_name'] = members
     else:
         data_row.append("-")
 
@@ -182,6 +189,7 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
             logging.debug("Error in running get_cover_image_url.")
         else:
             data_row.append(str(cover_url))
+            data['get_cover_image_url'] = cover_url
     else:
         data_row.append("-")
 
@@ -204,6 +212,10 @@ def get_todays_data(channel_id,username,password,save = True,replace_by_old_toda
     data_writer.writerow(data_row)
 
     csv_file.close()
+    return data if data else None
+
+def quit_browser():
+    prosumer.quit_browser()
 
 def get_media_file_url():
     root = tk.Tk()
@@ -217,7 +229,7 @@ media_file_types = [
     'mkv',
 ]
 
-def publish_new_video(channel_id,username,password,title,description,tags,media_url,category_index = 0,publish_now = True):
+def publish_new_video(channel_id,username,password,title,description,tags=[],category_index = 0,publish_now = True):
     # Chaning path to aparat data
     while (True):
         try:
@@ -244,14 +256,14 @@ def publish_new_video(channel_id,username,password,title,description,tags,media_
     now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
     # opening csv file to write in.
-    csv_file = open(raw_data_file_name, 'a+')
+    csv_file = open(publish_log_file_name, 'a+')
     data_writer = csv.writer(csv_file)
 
     data_row = []
 
     data_row.append(str(now))
 
-    upload_status = prosumer.upload_new_media(title,description,tags,media_url,category_index = category_index,publish_now = publish_now)
+    upload_status = prosumer.upload_new_media(title,description,file_path,tags,category_index = category_index,publish_now = publish_now)
 
     if upload_status:
         data_row += [title,
@@ -260,6 +272,7 @@ def publish_new_video(channel_id,username,password,title,description,tags,media_
         file_path,
         str(os.path.getsize(file_path))]
         data_writer.writerow(data_row)
+        return True
     else:
         data_row += ['FAILED',
                      'FAILED',
@@ -267,3 +280,4 @@ def publish_new_video(channel_id,username,password,title,description,tags,media_
                      'FAILED',
                      'FAILED']
         data_writer.writerow(data_row)
+        return False

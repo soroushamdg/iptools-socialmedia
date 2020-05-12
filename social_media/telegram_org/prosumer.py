@@ -17,12 +17,14 @@ import logger_factory,logging
 logging.getLogger(__name__)
 from social_media.telegram_org.options import script_name as sn
 import pathlib
-from options import chromdriver_path
+from options import chromdriver_path, test_run
+
 telegram_root_url = "https://t.me/"
 
 opts = Options()
-opts.set_headless(True)
-assert opts.headless
+if not test_run:
+    opts.set_headless(True)
+    assert opts.headless
 tlg_browser = Chrome(options=opts,executable_path=chromdriver_path)
 
 def get_channel_name(channel_id):
@@ -87,3 +89,6 @@ def get_cover_image_url(channel_id):
         logging.debug("Error in connecting to server ->"+str(msg))
     else:
         return tlg_browser.find_elements_by_class_name('tgme_page_photo_image')[0].get_attribute("src")
+
+def quit_browser():
+    tlg_browser.quit()

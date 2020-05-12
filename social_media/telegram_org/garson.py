@@ -63,6 +63,7 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
 
     data_row.append(str(now))
 
+    data = {}
     #start getting data.
     if "get_subscribers" in get_list:
         try:
@@ -71,6 +72,7 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
             logging.debug("Error in running get_subscribers.")
         else:
             data_row.append(str(members))
+            data['get_subscribers'] = str(members)
     else:
         data_row.append("-")
 
@@ -81,6 +83,7 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
             logging.debug("Error in running get_channel_name.")
         else:
             data_row.append(str(channel_name))
+            data['get_channel_name'] = str(channel_name)
     else:
         data_row.append("-")
 
@@ -91,6 +94,7 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
             logging.debug("Error in running get_description.")
         else:
             data_row.append(str(description))
+            data['get_description'] = str(description)
     else:
         data_row.append("-")
 
@@ -101,6 +105,7 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
             logging.debug("Error in running get_cover_image_url.")
         else:
             data_row.append(str(cover_url))
+            data['get_cover_image_url'] = str(cover_url)
     else:
         data_row.append("-")
 
@@ -123,4 +128,8 @@ def get_todays_data(channel_id,save = True,replace_by_old_todays_data = False,cu
     data_writer.writerow(data_row)
 
     csv_file.close()
-    return True
+
+    return data if data else None
+
+def quit_browser():
+    prosumer.quit_browser()
