@@ -457,15 +457,15 @@ def upload_new_media(title,description,media_url,tags = [],category_index = 0,pu
     #check if upload has finished
     while True:
         try:
-            with aparat_browser.find_element_by_class_name('sc-jDwBTQ').find_element_by_class_name('sc-gPEVay').text as status:
+            with aparat_browser.find_element_by_class_name('sc-gPEVay').text as status:
                 if  "ویدیوی شما با موفقیت بارگذاری شد" in status:
                     logging.debug('upload has finished')
                     break
                 elif "در حال بارگذاری" in status:
                     logging.debug(f'video still uploading. -> {aparat_browser.find_elements_by_class_name("dHqyom")}')
                     continue
-        except:
-            logging.debug('Error in uploading file, quiting.')
+        except Exception as msg:
+            logging.debug('Error in uploading file, quiting. ->' + str(msg))
             return False
 
     # submit video
@@ -473,6 +473,7 @@ def upload_new_media(title,description,media_url,tags = [],category_index = 0,pu
         aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('khoBFo').click()
     else:
         aparat_browser.find_element_by_class_name('sc-iQKALj').find_element_by_class_name('eEsanf').click()
+
 
     logging.debug('Video uploaded successfully')
     return True
